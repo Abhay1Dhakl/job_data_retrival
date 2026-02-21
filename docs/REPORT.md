@@ -2,13 +2,13 @@
 
 ## 1) Architecture Overview
 The system is a standard RAG stack:
-- **Ingestion**: `scripts/build_index.py` reads the LF Jobs CSV, cleans HTML, and chunks descriptions.
-- **Embedding**: `app/rag/embeddings.py` uses a local Sentence-Transformers model (`intfloat/e5-large-v2`, 1024-dim).
-- **Vector Store**: `app/rag/vector_store.py` stores embeddings and metadata in Pinecone for similarity search.
-- **Retriever**: `app/rag/retriever.py` runs vector search and optionally combines it with BM25 scores for hybrid retrieval.
-- **Reranker (optional)**: `app/rag/reranker.py` uses a cross-encoder model for improved ranking.
-- **LLM**: `app/rag/llm.py` calls an OpenAI-compatible endpoint to synthesize a concise answer.
-- **API**: `app/api/routes.py` exposes `POST /api/query`.
+- **Ingestion**: `backend/scripts/build_index.py` reads the LF Jobs CSV, cleans HTML, and chunks descriptions.
+- **Embedding**: `backend/app/rag/embeddings.py` uses a local Sentence-Transformers model (`intfloat/e5-large-v2`, 1024-dim).
+- **Vector Store**: `backend/app/rag/vector_store.py` stores embeddings and metadata in Pinecone for similarity search.
+- **Retriever**: `backend/app/rag/retriever.py` runs vector search and optionally combines it with BM25 scores for hybrid retrieval.
+- **Reranker (optional)**: `backend/app/rag/reranker.py` uses a cross-encoder model for improved ranking.
+- **LLM**: `backend/app/rag/llm.py` calls an OpenAI-compatible endpoint to synthesize a concise answer.
+- **API**: `backend/app/api/routes.py` exposes `POST /api/query`.
 
 ## 2) Engineering Decisions
 - **Pinecone for vector storage**: Managed vector store with scalable search.
@@ -19,11 +19,11 @@ The system is a standard RAG stack:
 - **Embedding projection**: Optional random projection to meet vector dimension limits (e.g., 1024).
 
 ## 3) Setup & Installation
-1. Install dependencies: `pip install -r requirements.txt`
+1. Install dependencies: `pip install -r backend/requirements.txt`
 2. Add dataset CSV at `data/lf_jobs.csv` or set `DATA_PATH`.
 3. Configure `.env` from `.env.example` and set `LLM_API_KEY` if using LLM responses.
-4. Build indexes: `python scripts/build_index.py`
-5. Start API: `uvicorn app.main:app --reload`
+4. Build indexes: `PYTHONPATH=backend python backend/scripts/build_index.py`
+5. Start API: `PYTHONPATH=backend uvicorn app.main:app --reload`
 
 ## 4) Example Usage
 Request:
