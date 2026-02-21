@@ -1,0 +1,160 @@
+"use client";
+
+import { useState } from "react";
+
+const hints = [
+  "senior data engineer remote",
+  "machine learning internship",
+  "product manager healthcare",
+  "frontend developer react"
+];
+
+export default function Home() {
+  const [query, setQuery] = useState("");
+  const [topK, setTopK] = useState(5);
+  const [useHybrid, setUseHybrid] = useState(false);
+  const [useRerank, setUseRerank] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [hits, setHits] = useState([]);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    setAnswer("");
+    setHits([]);
+
+    try {
+      const res = await fetch("/api/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query,
+          top_k: Number(topK) || 5,
+          use_hybrid: useHybrid,
+          use_rerank: useRerank
+        })
+      });
+
+      if (!res.ok) {
+        const detail = await res.text();
+        throw new Error(detail || "Request failed");
+      }
+
+      const data = await res.json();
+      setAnswer(data.answer || "");
+      setHits(data.hits || []);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main>
+      <div className="header">
+        <div>
+          <span className="tag">RAG Console</span>
+          <h1 className="title">Job Data Retrieval</h1>
+          <p className="subtitle">
+            Search the job corpus with hybrid retrieval, reranking, and optional
+            LLM synthesis.
+          </p>
+        </div>
+        <div>
+          <div className="subtitle">Backend health</div>
+          <div className="meta">FastAPI + Pinecone + Redis cache</div>
+        </div>
+      </div>
+
+      <section className="panel">
+        <form className="form" onSubmit={submit}>
+          <div>
+            <div className="label">Query</div>
+            <input
+              className="input"
+              placeholder="Search roles, locations, seniority"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              required
+              minLength={3}
+            />
+          </div>
+
+          <div className="hints">
+            {hints.map((hint) => (
+              <button
+                key={hint}
+                type="button"
+                className="hint"
+                onClick={() => setQuery(hint)}
+              >
+                {hint}
+              </button>
+            ))}
+          </div>
+
+          <div className="row">
+            <div>
+              <div className="label">Top K</div>
+              <input
+                className="input"
+                type="number"
+                min={1}
+                max={20}
+                value={topK}
+                onChange={(e) => setTopK(e.target.value)}
+              />
+            </div>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={useHybrid}
+                onChange={(e) => setUseHybrid(e.target.checked)}
+              />
+              Hybrid retrieval
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={useRerank}
+                onChange={(e) => setUseRerank(e.target.checked)}
+              />
+              Cross-encoder rerank
+            </label>
+          </div>
+
+          <button className="button" type="submit" disabled={loading}>
+            {loading ? "Running search..." : "Query jobs"}
+          </button>
+        </form>
+
+        {error && <div className="error">{error}</div>}
+
+        {answer && <div className="answer">{answer}</div>}
+
+        {hits.length > 0 && (
+          <div className="hits">
+            {hits.map((hit) => (
+              <div className="hit" key={hit.id}>
+                <h4>{hit.job_title}</h4>
+                <div className="meta">
+                  {hit.company} · {hit.location} · {hit.level} · score {hit.score.toFixed(2)}
+                </div>
+                <div>{hit.snippet}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="footer">
+          Tip: Enable reranking only after setting a reranker model in your
+          environment.
+        </div>
+      </section>
+    </main>
+  );
+}

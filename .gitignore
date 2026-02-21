@@ -14,6 +14,11 @@ venv/
 .idea/
 .vscode/
 .ipynb_checkpoints/
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*
 
 # Data and indexes
 data/*.csv

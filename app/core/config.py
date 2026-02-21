@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     pinecone_region: str = Field(default="us-east-1")
     pinecone_metric: str = Field(default="cosine")
 
+    redis_url: str | None = Field(default=None)
+    cache_ttl_seconds: int = Field(default=300, ge=0)
+
     model_config = SettingsConfigDict(env_file=(".env", ".env.example"), case_sensitive=False)
 
 

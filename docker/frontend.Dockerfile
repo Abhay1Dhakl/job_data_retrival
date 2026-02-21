@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+COPY frontend/package.json ./
+RUN npm install
 
 FROM node:20-alpine AS builder
 WORKDIR /app
