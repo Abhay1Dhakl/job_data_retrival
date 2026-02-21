@@ -30,6 +30,9 @@ cp .env.example .env
 
 Docker Compose will read `.env.example` by default; `.env` overrides it when present.
 
+The API image pre-downloads the embedding model at build time. If you change
+`EMBEDDING_MODEL`, rebuild the image.
+
 4. Build the index:
 
 ```bash
