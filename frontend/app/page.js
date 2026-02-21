@@ -11,18 +11,53 @@ const hints = [
 
 const parseSuggestions = (text) => {
   if (!text) return [];
-  const lines = text.split(/\r?\n/);
   const items = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    const match = trimmed.match(/^[-*•\d+).]\s*\*\*(.+?)\*\*:\s*(.+)$/);
-    if (!match) continue;
+  const normalized = text.replace(/\r\n/g, "\n");
+
+  const jobsMatch = normalized.match(/JOBS:\s*([\s\S]*)/i);
+  if (jobsMatch) {
+    const lines = jobsMatch[1].split("\n").map((line) => line.trim()).filter(Boolean);
+    for (const line of lines) {
+      if (!line.startsWith("-")) continue;
+      const trimmed = line.replace(/^-\s*/, "");
+      const parts = trimmed.split("|").map((part) => part.trim());
+      if (parts.length < 4) continue;
+      items.push({
+        role: parts[0],
+        company: parts[1],
+        location: parts[2],
+        description: parts.slice(3).join(" | ")
+      });
+    }
+    if (items.length > 0) return items;
+  }
+
+  const bulletRegex = /(?:^|\s)[-•]\s*\*\*(.+?)\*\*\s*:?([\s\S]*?)(?=(?:\s[-•]\s*\*\*|$))/g;
+  let match;
+  while ((match = bulletRegex.exec(normalized)) !== null) {
     const titleLine = match[1].trim();
-    const description = match[2].trim();
+    const detailsRaw = match[2].trim();
     const parts = titleLine.split(",").map((part) => part.trim()).filter(Boolean);
-    const role = parts[0] || titleLine;
-    const company = parts[1] || "";
-    const location = parts.slice(2).join(", ");
+    let role = parts[0] || titleLine;
+    let company = parts[1] || "";
+    let location = parts.slice(2).join(", ");
+
+    if (!company && (titleLine.includes(" - ") || titleLine.includes(" – "))) {
+      const sep = titleLine.includes(" - ") ? " - " : " – ";
+      const split = titleLine.split(sep).map((part) => part.trim());
+      role = split[0] || role;
+      company = split[1] || company;
+    }
+
+    const details = detailsRaw.replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
+    const companyMatch = details.match(/Company:\s*([^]+?)(?=Location:|Reason:|$)/i);
+    const locationMatch = details.match(/Location:\s*([^]+?)(?=Reason:|$)/i);
+    const reasonMatch = details.match(/Reason:\s*([^]+)$/i);
+
+    if (companyMatch) company = companyMatch[1].trim();
+    if (locationMatch) location = locationMatch[1].trim();
+    const description = reasonMatch ? reasonMatch[1].trim() : details;
+
     items.push({ role, company, location, description });
   }
   return items;
@@ -30,7 +65,12 @@ const parseSuggestions = (text) => {
 
 const extractSummary = (text) => {
   if (!text) return "";
-  const lines = text.split(/\r?\n/);
+  const normalized = text.replace(/\r\n/g, "\n");
+  const summaryMatch = normalized.match(/SUMMARY:\s*([\s\S]*?)(?:\nJOBS:|$)/i);
+  if (summaryMatch) return summaryMatch[1].trim();
+  const topJobsIndex = normalized.toLowerCase().indexOf("top jobs:");
+  if (topJobsIndex !== -1) return normalized.slice(0, topJobsIndex).trim();
+  const lines = normalized.split("\n");
   const summary = [];
   for (const line of lines) {
     if (line.trim().match(/^[-*•\d+).]\s*\*\*/)) break;
