@@ -50,6 +50,10 @@ class RagPipeline:
 
 
 def build_pipeline(settings: Settings) -> RagPipeline:
+    embedding_model = EmbeddingModel(
+        model_name=settings.embedding_model,
+        batch_size=settings.embedding_batch_size,
+    )
     vector_store = PineconeVectorStore(
         api_key=settings.pinecone_api_key,
         index_name=settings.pinecone_index,
@@ -57,10 +61,6 @@ def build_pipeline(settings: Settings) -> RagPipeline:
         region=settings.pinecone_region,
         metric=settings.pinecone_metric,
         dimension=embedding_model.dimension(),
-    )
-    embedding_model = EmbeddingModel(
-        model_name=settings.embedding_model,
-        batch_size=settings.embedding_batch_size,
     )
 
     bm25_index = None
