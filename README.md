@@ -11,12 +11,12 @@ A production-ready Retrieval-Augmented Generation (RAG) service for job data. It
 - OpenAI-compatible LLM integration
 
 ## Setup
-1. Create a virtual environment and install dependencies:
+1. Create a virtual environment and install dependencies (uv):
 
 ```bash
-python -m venv .venv
+uv venv
 source .venv/bin/activate
-pip install -r backend/requirements.txt
+uv pip install -e backend
 ```
 
 2. Place the dataset CSV at `data/lf_jobs.csv` or change `DATA_PATH` in `.env`.
@@ -37,6 +37,13 @@ PYTHONPATH=backend python backend/scripts/build_index.py
 
 ```bash
 PYTHONPATH=backend uvicorn app.main:app --reload
+```
+
+### Convenience (Makefile)
+```bash
+make setup
+make build-index
+make api
 ```
 
 ## Query API
