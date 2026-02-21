@@ -84,7 +84,7 @@ Example response shape:
 
 ## Notes
 - Hybrid search requires `bm25.pkl`, created by `backend/scripts/build_index.py`.
-- Reranking requires setting `RERANK_MODEL` in `.env` (e.g., `cross-encoder/ms-marco-MiniLM-L-6-v2`).
+- Reranking is enabled by default via `RERANK_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2` in `.env.example`.
 - LLM responses require `LLM_API_KEY`. If missing, the API returns retrieval-only results.
 - Pinecone index configuration is controlled via `PINECONE_*` env vars in `.env`.
 - Pinecone index dimension must match your embedding dimension (1024 for `intfloat/e5-large-v2`).

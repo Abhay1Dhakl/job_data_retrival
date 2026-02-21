@@ -7,6 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 ARG EMBEDDING_MODEL=intfloat/e5-large-v2
+ARG RERANK_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
 ENV HF_HOME=/app/.cache/huggingface
 
 COPY backend/pyproject.toml /app/backend/pyproject.toml
@@ -18,6 +19,11 @@ RUN pip install --no-cache-dir --upgrade pip \
 RUN python - <<PY
 from sentence_transformers import SentenceTransformer
 SentenceTransformer("${EMBEDDING_MODEL}")
+PY
+
+RUN python - <<PY
+from sentence_transformers import CrossEncoder
+CrossEncoder("${RERANK_MODEL}")
 PY
 
 COPY backend/scripts /app/backend/scripts
